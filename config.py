@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+
 SERVER_PORT = 11024
 FILE_SERVER_PORT = 11025
 BUFSIZE = 1024
