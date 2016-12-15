@@ -149,7 +149,7 @@ class TCPFileListener(threading.Thread):
 								i+=1
 							print("process: %s%%"% (i*1.0/self.blockCount))
 							if i==self.blockCount:
-								os.popen("echo ''>%s" % self.filename)
+								os.popen("touch %s" % self.filename)
 								for x in range(1,self.blockCount+1):
 									os.popen("cat tmp/%s>>%s" % (x,self.filename))
 									os.popen("rm tmp/%s" % x)
