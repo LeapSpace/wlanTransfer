@@ -128,8 +128,9 @@ class TCPFileListener(threading.Thread):
 		while True:
 			try:
 				data = self.client.recv(BUFSIZE)
-				print len(data)
 				if(data):
+					if len(data)!=2048:
+						print data
 					block, size, mdata, isEnd = struct.unpack(Msg.MSG_DATA_FMT,data)
 					fdata+=mdata[:size]
 					if isEnd==1:
