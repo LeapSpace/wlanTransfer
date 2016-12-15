@@ -68,8 +68,8 @@ class FileRecv(object):
 	def run(self):
 		blockCount = int(math.ceil(self.fileSize*1.0/BLOCK_SIZE))
 		serverCount = blockCount
-		if serverCount>10:
-			serverCount = 10
+		if serverCount>THREAD_COUNT:
+			serverCount = THREAD_COUNT
 		for x in xrange(1, serverCount+1):
 			pid = os.fork()
 			if pid==0:
@@ -194,8 +194,8 @@ class FileSender(object):
 		self.blockCount = int(math.ceil(self.fileSize*1.0/BLOCK_SIZE))
 		self.serverCount = self.blockCount
 		self.blockQueue = Queue.Queue(self.blockCount)
-		if self.blockCount>10:
-			self.serverCount = 10
+		if self.blockCount>THREAD_COUNT:
+			self.serverCount = THREAD_COUNT
 		self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.client.connect((target, SERVER_PORT-1))
 		self.client.send(struct.pack(Msg.MSG_FMT,Msg.SenderFileReqNo,"%s\n%s\n%s"%(socket.gethostname(),filename.split("/")[-1],self.fileSize)))
