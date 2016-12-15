@@ -248,12 +248,14 @@ class FileSendWorker(threading.Thread):
 			isEnd = 0
 			data_size = len(data)
 			while True:
-				end = tmp+1020
+				end = tmp+DATA_BLOCK_SIZE
 				tmp_data = data[tmp:end]
 				if not tmp_data:
 					break
 				if end>=data_size:
 					isEnd = 1
+				send = struct.pack(Msg.MSG_DATA_FMT,block,len(tmp_data),tmp_data,isEnd)
+				print len(send)
 				self.client.send(struct.pack(Msg.MSG_DATA_FMT,block,len(tmp_data),tmp_data,isEnd))
 				tmp = end
 
