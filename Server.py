@@ -124,11 +124,11 @@ class TCPFileListener(threading.Thread):
 		self.callback = callback
 		self.blockCount = blockCount
 	def run(self):
-		fdata = ""
+		fdata = data = ""
 		read_size = BUFSIZE
 		while True:
 			try:
-				data = self.client.recv(BUFSIZE)
+				data += self.client.recv(read_size)
 				print "data length",len(data)
 				if(data):
 					data_length = len(data)
@@ -137,8 +137,7 @@ class TCPFileListener(threading.Thread):
 					else:
 						read_size = BUFSIZE
 						block, size, mdata, isEnd = struct.unpack(Msg.MSG_DATA_FMT,data)
-						print block,size,isEnd
-						break
+						data = ""
 						fdata+=mdata[:size]
 						if isEnd==1:
 							f=open("tmp/%s" % block,"wb")
