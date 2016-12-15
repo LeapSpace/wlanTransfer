@@ -13,12 +13,13 @@ class Msg(object):
 	MSG_FMT = "<I128s"	#ScanReqNo/hi
 	MSG_SEND_REQ_FMT = "<I128s"	#SenderFileReqNo/Space-PC\nFilename/fileSize
 	MSG_SEND_RES_FMT = "<I128s"	#SenderFileResNo/yes or no
-
-	DATA_FMT = '''
-
-DATA_START>>>%d|%sDATA_END<<<
-
-'''
+	'''
+	block
+	current_size
+	data
+	is_current_block_end
+	'''
+	MSG_DATA_FMT = "<IH2040sH"
 
 if __name__ == "__main__":
 	pass

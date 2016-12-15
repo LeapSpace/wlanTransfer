@@ -124,28 +124,19 @@ class TCPFileListener(threading.Thread):
 		self.callback = callback
 		self.blockCount = blockCount
 	def run(self):
+		fdata = ""
 		while True:
 			try:
 				data = self.client.recv(BUFSIZE)
 				if(data):
-					packet_start_pos = data.find(Msg.DATA_FMT[:15])
-					packet_end_pos = data.find(Msg.DATA_FMT[-13:])
-					if packet_start_pos>-1 and packet_end_pos>-1:
-						sep_pos = data.find("|", packet_start_pos)
-						block = data[15:sep_pos]
-						fdata = data[sep_pos+1:]
-					if packet_start_pos<0 and packet_end_pos<0:
-						fdata+=data
-					if packet_start_pos>-1 and packet_end_pos<0:
-						sep_pos = data.find("|", packet_start_pos)
-						block = data[15:sep_pos]
-						fdata = data[sep_pos+1:]
-					if packet_start_pos<0 and packet_end_pos>-1:
-						fdata += data[:-13]
-					if packet_end_pos>-1:
+					block, size, mdata, isEnd = struct.unpack(Msg.MSG_DATA_FMT,data)
+					fdata+=mdata[:size]
+					if isEnd==1:
 						f=open("tmp/%s" % block,"wb")
 						f.write(fdata)
 						f.close()
+						fdata = ""
+						# detect if translation is over
 						i = 0
 						for f in os.listdir("tmp"):
 							i+=1
@@ -155,10 +146,10 @@ class TCPFileListener(threading.Thread):
 							for x in range(1,self.blockCount+1):
 								os.popen("cat tmp/%s>>%s" % (x,self.filename))
 								os.popen("rm tmp/%s" % x)
-							self.callback(self.pidQueue)
 							self.client.close()
 							self.sockServer.shutdown(2)
 							self.sockServer.close()
+							self.callback(self.pidQueue)
 							break
 						fdata=""
 			except Exception as e:
@@ -251,7 +242,18 @@ class FileSendWorker(threading.Thread):
 			block,offset = self.blockQueue.get()
 			self.file.seek(offset)
 			data = self.file.read(BLOCK_SIZE)
-			self.client.sendall(Msg.DATA_FMT%(block,data))
+			tmp = 0
+			isEnd = 0
+			data_size = len(data)
+			while True:
+				end = tmp+1020
+				tmp_data = data[tmp:end]
+				if not tmp_data:
+					break
+				if end>=data_size:
+					isEnd = 1
+				self.client.send(struct.pack(Msg.MSG_DATA_FMT,block,len(tmp_data),tmp_data,isEnd))
+				tmp = end
 
 if __name__ == "__main__":
 	pid = os.fork()
@@ -314,8 +316,11 @@ if __name__ == "__main__":
 							pass
 					if state:
 						break
-				sock.shutdown(2)
-				sock.close()
+				try:
+					sock.shutdown(2)
+					sock.close()
+				except Exception as e:
+					raise e
 
 
 	#time.sleep(0)
