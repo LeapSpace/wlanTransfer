@@ -125,36 +125,42 @@ class TCPFileListener(threading.Thread):
 		self.blockCount = blockCount
 	def run(self):
 		fdata = ""
+		read_size = BUFSIZE
 		while True:
 			try:
 				data = self.client.recv(BUFSIZE)
-				print "data length:",len(data)
+				print "data length",len(data)
 				if(data):
-					block, size, mdata, isEnd = struct.unpack(Msg.MSG_DATA_FMT,data)
-					print block,size,isEnd
-					break
-					fdata+=mdata[:size]
-					if isEnd==1:
-						f=open("tmp/%s" % block,"wb")
-						f.write(fdata)
-						f.close()
-						fdata = ""
-						# detect if translation is over
-						i = 0
-						for f in os.listdir("tmp"):
-							i+=1
-						print("process:%s%"%i*1.0/self.blockCount)
-						if i==self.blockCount:
-							os.popen("echo ''>%s" % self.filename)
-							for x in range(1,self.blockCount+1):
-								os.popen("cat tmp/%s>>%s" % (x,self.filename))
-								os.popen("rm tmp/%s" % x)
-							self.client.close()
-							self.sockServer.shutdown(2)
-							self.sockServer.close()
-							self.callback(self.pidQueue)
-							break
-						fdata=""
+					data_length = len(data)
+					if data_length!=BUFSIZE:
+						read_size = BUFSIZE-data_length
+					else:
+						read_size = BUFSIZE
+						block, size, mdata, isEnd = struct.unpack(Msg.MSG_DATA_FMT,data)
+						print block,size,isEnd
+						break
+						fdata+=mdata[:size]
+						if isEnd==1:
+							f=open("tmp/%s" % block,"wb")
+							f.write(fdata)
+							f.close()
+							fdata = ""
+							# detect if translation is over
+							i = 0
+							for f in os.listdir("tmp"):
+								i+=1
+							print("process:%s%"%i*1.0/self.blockCount)
+							if i==self.blockCount:
+								os.popen("echo ''>%s" % self.filename)
+								for x in range(1,self.blockCount+1):
+									os.popen("cat tmp/%s>>%s" % (x,self.filename))
+									os.popen("rm tmp/%s" % x)
+								self.client.close()
+								self.sockServer.shutdown(2)
+								self.sockServer.close()
+								self.callback(self.pidQueue)
+								break
+							fdata=""
 			except Exception as e:
 				raise e
 		print("process end.")
