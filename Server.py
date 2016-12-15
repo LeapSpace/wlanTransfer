@@ -132,6 +132,8 @@ class TCPFileListener(threading.Thread):
 					if len(data)!=2048:
 						print len(data),data[-2:]
 					block, size, mdata, isEnd = struct.unpack(Msg.MSG_DATA_FMT,data)
+					print block,size,isEnd
+					break
 					fdata+=mdata[:size]
 					if isEnd==1:
 						f=open("tmp/%s" % block,"wb")
