@@ -190,6 +190,7 @@ class FileSender(object):
 			print(filename+" not exists.")
 			os._exit(0)
 
+		print("send file start:%s" % time.time())
 		self.fileSize = os.path.getsize(filename)
 		self.blockCount = int(math.ceil(self.fileSize*1.0/BLOCK_SIZE))
 		self.serverCount = self.blockCount
@@ -290,7 +291,6 @@ if __name__ == "__main__":
 			elif choice==2:
 				target_file = raw_input("please input the host and file you want to send\n.e.g:192.168.1.110 test.txt\n")
 				target,filename = target_file.split(" ")
-				print("send file start:%s" % time.time())
 				fileSender = FileSender(target, filename)
 			else:
 				print("waiting for someone sending file ...")
