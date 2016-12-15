@@ -147,7 +147,7 @@ class TCPFileListener(threading.Thread):
 							i = 0
 							for f in os.listdir("tmp"):
 								i+=1
-							print("process: %s%%"%i*1.0/self.blockCount)
+							print("process: %s%%"% (i*1.0/self.blockCount))
 							if i==self.blockCount:
 								os.popen("echo ''>%s" % self.filename)
 								for x in range(1,self.blockCount+1):
