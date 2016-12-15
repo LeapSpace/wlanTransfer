@@ -128,9 +128,8 @@ class TCPFileListener(threading.Thread):
 		while True:
 			try:
 				data = self.client.recv(BUFSIZE)
+				print "data length:",len(data)
 				if(data):
-					if len(data)!=2048:
-						print len(data),data[-2:]
 					block, size, mdata, isEnd = struct.unpack(Msg.MSG_DATA_FMT,data)
 					print block,size,isEnd
 					break
@@ -257,7 +256,8 @@ class FileSendWorker(threading.Thread):
 				if end>=data_size:
 					isEnd = 1
 				send = struct.pack(Msg.MSG_DATA_FMT,block,len(tmp_data),tmp_data,isEnd)
-				print len(send)
+				if 2048!=len(send):
+					print block,offset
 				self.client.send(struct.pack(Msg.MSG_DATA_FMT,block,len(tmp_data),tmp_data,isEnd))
 				tmp = end
 
