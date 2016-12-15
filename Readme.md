@@ -6,9 +6,10 @@
 
 
 ##切片策略
- 1、小于BLOCK_SIZE不切
- 2、BLOCK_SIZE一片,
- 3、每个切片格式：前2个字节代表切片顺序，后边为数据包
+
+  1、小于BLOCK_SIZE不切
+  2、BLOCK_SIZE一片,
+  3、每个切片格式：前2个字节代表切片顺序，后边为数据包
 
 
 ##Usage（python2.*）:
@@ -17,9 +18,11 @@
 	python Server.py
 ```
 
- 1、启动、scan
- 2、scan
- 3、列出局域网主机
- 4、选择 目标主机、目标文件
 
-TODO: optimize
+  1、启动、scan
+  2、scan
+  3、列出局域网主机
+  4、选择 目标主机、目标文件
+
+
+###TODO: optimize
