@@ -188,7 +188,7 @@ class TCPServer(object):
 		reqNo,data=struct.unpack(Msg.MSG_FMT,data)
 		if reqNo==Msg.SenderFileReqNo:
 			hostname,filename,fileSize = data.strip().split("\n")
-			print hostname,filename,fileSize
+			fileSize = fileSize.strip("\0")
 			yesOrNo = raw_input(self.client.getpeername()[0]+"---"+hostname+" wants to send you <<"+filename+">>,\ndo you want it?yes or no:").lower()
 			if yesOrNo=="yes" or yesOrNo=="y":
 				self.client.send(struct.pack(Msg.MSG_FMT, Msg.SenderFileResNo, "yes"))
