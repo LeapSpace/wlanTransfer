@@ -182,6 +182,7 @@ class TCPServer(object):
 	def receive(self):
 		print("waiting for someone sending file ...")
 		self.client, cltadd = self.sock.accept()
+		data = self.client.recv(BUFFERSIZE)
 		reqNo,data=struct.unpack(Msg.MSG_FMT,data)
 		if reqNo==Msg.SenderFileReqNo:
 			hostname,filename,fileSize = data.strip().split("\n")
@@ -230,7 +231,7 @@ class TCPServer(object):
 		filename = filepath.split(os.sep)[-1]
 		client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 		client.connect(target)
-		client.send(Msg.MSG_FMT,Msg.MSG_FMT,Msg.SenderFileReqNo,"hostname\n"+filename+"\n"+str(file_size))
+		client.send(struct.pack(Msg.MSG_FMT,Msg.SenderFileReqNo,"hostname\n"+filename+"\n"+str(file_size)))
 		data = client.recv(BUFFERSIZE)
 		resNo,data = struct.unpack(Msg.MSG_FMT,data)
 		data=data.strip("\0")
