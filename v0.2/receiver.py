@@ -194,7 +194,7 @@ class TCPServer(object):
 				self.client.send(struct.pack(Msg.MSG_FMT, Msg.SenderFileResNo, "no"))
 				self.client.close()
 	def scan(self):
-		scanner = Scanner.Scanner(10)
+		scanner = Scanner.Scanner(5)
 		wlanHosts = scanner.run()
 		print("\n")
 		for w in wlanHosts:

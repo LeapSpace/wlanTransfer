@@ -38,7 +38,7 @@ class Scanner():
 
 	def initThreads(self):
 		for i in range(self.maxThreads):
-			self.threads.append(ScanHost(self.queue, self.wlanHostQueue))
+			self.threads.append(ScanHost("thread-"+str(i),self.queue, self.wlanHostQueue))
 
 	@staticmethod
 	def getHostname():
@@ -63,34 +63,35 @@ class Scanner():
 
 class ScanHost(threading.Thread):
 	'''scan single host'''
-	def __init__(self, queue, wlanHostQueue):
+	def __init__(self, threadname, queue, wlanHostQueue):
 		threading.Thread.__init__(self)
+		self.threadname = threadname
 		self.queue = queue
 		self.wlanHostQueue = wlanHostQueue
 		self.start()
-		self.unpad = lambda s: s[0:-s[-1]]
 
 	def run(self):
 		while True:
 			if self.queue.qsize()<=0:
+				print self.threadname+" queue size:"+str(self.queue.qsize())
 				break
 			host = self.queue.get()
-			client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			try:
-				client.settimeout(0.05 )
-				client.connect((host, 11023))
+				client = socket.create_connection((host, 11023), 0.05)
 				client.send(struct.pack(Msg.MSG_FMT,Msg.ScanReqNo,"hi"))
+
 				data = client.recv(1024)
 				resNo,data = struct.unpack(Msg.MSG_FMT,data)
+				if host=="192.168.1.181":
+					print time.time()-start_time
 				if resNo==Msg.ScanResNo:
 					self.wlanHostQueue.put({"host":host,"hostname":data.strip("\0")})
-			except:
-				pass
-			finally:
 				client.close()
+			except Exception as e:
+				pass
 
 if __name__ == "__main__":
-	scanner = Scanner(10)
+	scanner = Scanner(5)
 	wlanHosts = scanner.run()
 	print wlanHost
 	#print(Msg.getScanReqData())
