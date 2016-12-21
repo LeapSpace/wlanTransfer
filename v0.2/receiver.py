@@ -55,7 +55,7 @@ class FileRecver(object):
 			if block==0 and cut==0 and cut_count==0 and cut_size==0:
 				break
 			received_data+=received_data
-			self.udp_sock.sendto(cut,cltadd)
+			self.udp_sock.sendto(int(cut),cltadd)
 			self.block_cuts[cut] = fdata[:cut_size]
 			# wait current block transfer complete
 			if block not in self.block_set and len(self.block_cuts)==cut_count:
