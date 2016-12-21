@@ -84,7 +84,7 @@ class FileSender(object):
 			f.seek(offset)
 			block_data = f.read(BLOCK_SZIE)
 			cut = 0
-			cut_count = math.ceil(len(block_data)*1.0/CUT_SIZE)
+			cut_count = int(math.ceil(len(block_data)*1.0/CUT_SIZE))
 			to_send_cuts = [i for i in range(cut_count)]
 			send_out_unconfirm_cuts = set()
 			check = 0
