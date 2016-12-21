@@ -1,7 +1,10 @@
 import socket,struct
 import os,sys,math,time
 import Queue
+import threading
+import struct
 import shutil
+import Scanner
 
 SERVER_PORT = 11024
 
@@ -12,6 +15,9 @@ SPEED = 100*1024*1024#100M/s
 
 class Msg(object):
 	'''msg type'''
+
+	ScanReqNo = 100100
+	ScanResNo = 100101
 
 	SenderFileReqNo = 100101
 	SenderFileResNo = 100102
@@ -121,64 +127,55 @@ class FileSender(object):
 				except Exception as e:
 					pass
 
-
-
-class UDPServer(object):
-	"""docstring for UDPServer"""
-
-	sock = None
-	client = None
-
-	def __init__(self):
-		super(UDPServer, self).__init__()
-
-	@staticmethod
-	def init():
-		UDPServer.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-		UDPServer.client = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-		UDPServer.client.settimeout(0.01)
-		UDPServer.sock.bind(("0.0.0.0",SERVER_PORT-1))
-
-	@staticmethod
-	def run():
-		if not UDPServer.sock:
-			UDPServer.init()
+class ScanServer(object):
+	def __init__(self, port, permitHost=None):
+		self.port = port
+		self.permitHost = permitHost
+		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		self.sock.bind(("0.0.0.0", port))
+		self.sock.listen(5)
+	def run(self):
 		while True:
-			data,cltadd = UDPServer.sock.recvfrom(BUFFERSIZE)
-			UDPServer.sock.sendto("hi",cltadd)
+			client, cltadd = self.sock.accept()
+			if self.permitHost!=None and client.getpeername()[0]!=self.permitHost:
+				client.close()
+			TCPListener(client).start()
 
-	@staticmethod
-	def active_check(target):
-		if not UDPServer.sock:
-			UDPServer.init()
-		i=0
-		active = False
-		while i<3:
-			UDPServer.client.sendto("hi",target)
-			try:
-				data,cltadd = UDPServer.client.recvfrom(BUFFERSIZE)
-				active = True
-				break
-			except:
-				i+=1
-				continue
-		return active
+class TCPListener(threading.Thread):
+	"""docstring for Listener"""
+	def __init__(self, client):
+		threading.Thread.__init__(self)
+		self.client = client
 
-
+	def run(self):
+		try:
+			while True:
+				data = self.client.recv(BUFFERSIZE)
+				if(data):
+					reqNo,data=struct.unpack(Msg.MSG_FMT,data)
+					if reqNo==Msg.ScanReqNo:
+						self.client.send(struct.pack(Msg.MSG_FMT, Msg.ScanResNo, socket.gethostname()))
+				else:
+					break
+		except Exception as e:
+			raise e
+		else:
+			pass
+		finally:
+			self.client.close()
 
 class TCPServer(object):
 	"""docstring for TCPServer"""
 	def __init__(self):
 		super(TCPServer, self).__init__()
-		pid = os.fork()
-		if pid==0:
-			udp_server = UDPServer()
-			udp_server.run()
-		else:
-			self.udp_server_pid=pid
 		time.sleep(0.1)
 		self.hostname = socket.gethostname()
 		self.ip = self.getSelfIp()
+		pid = os.fork()
+		if pid==0:
+			scanServer = ScanServer(SERVER_PORT-1)
+			scanServer.run()
 		self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 		self.sock.bind(("0.0.0.0", SERVER_PORT))
 		self.sock.listen(1)
@@ -197,18 +194,12 @@ class TCPServer(object):
 				self.client.send(struct.pack(Msg.MSG_FMT, Msg.SenderFileResNo, "no"))
 				self.client.close()
 	def scan(self):
-		partIp = ".".join(self.ip.split(".")[:3])
-		scan_sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-		scan_sock.settimeout(0.01)
-		for x in range(2,255):
-			scan_sock.sendto("hi",(partIp+"."+str(x),SERVER_PORT-1))
-
-		for i in range(2,255):
-			try:
-				res,addr = scan_sock.recvfrom(BUFFERSIZE)
-				print addr,res
-			except Exception as e:
-				pass
+		scanner = Scanner.Scanner(10)
+		wlanHosts = scanner.run()
+		print("\n")
+		for w in wlanHosts:
+			print(w)
+		print("\n")
 
 	def getHostname(self):
 		return self.hostname
