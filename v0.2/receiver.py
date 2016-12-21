@@ -94,7 +94,7 @@ class FileSender(object):
 			cut_count = int(math.ceil(len(block_data)*1.0/CUT_SIZE))
 			to_send_cuts = [i for i in range(cut_count)]
 			send_out_unconfirm_cuts = set()
-			check = 0
+			check = 1
 			while len(to_send_cuts)>0:
 				#data in transfering > speed * time. wait for server confirm
 				if len(send_out_unconfirm_cuts)*CUT_SIZE>(SPEED*0.01):
