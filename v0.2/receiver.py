@@ -206,8 +206,7 @@ class TCPServer(object):
 		for i in range(2,255):
 			try:
 				res,addr = scan_sock.recvfrom(BUFFERSIZE)
-				if (res):
-					print(scan_sock.getpeername()[0])
+				print addr,res
 			except Exception as e:
 				pass
 
@@ -216,9 +215,7 @@ class TCPServer(object):
 
 	def getSelfIp(self):
 		ip = ""
-		if sys.platform=="darwin":
-			ip = os.popen("ifconfig en0|grep 'inet '|cut -d ' ' -f2").readline().strip()
-		elif sys.platform.find("linux")>-1:
+		if sys.platform=="darwin" or sys.platform.find("linux")>-1:
 			ip = os.popen("ifconfig|grep 'inet '|grep -v '127.0.0.1'|awk -F 'inet ' '{print $2}'|cut -d ' ' -f1|head -n1").readline().strip()
 		else:
 			try:
