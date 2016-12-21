@@ -35,20 +35,26 @@ class FileRecver(object):
 		self.udp_sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 		self.udp_sock.bind(("0.0.0.0", SERVER_PORT))
 		self.filename = filename
+		self.file_size = file_size
+		self.tcp_client = tcp_client
 		self.block_count = math.ceil(file_size*1.0/BLOCK_SZIE)
 		self.block_cuts = {}
 		self.block_set = set()
 
 	def run(self):
+		received_data = 0
 		while True:
+			if received_data>=self.file_size:
+				break
 			data,cltadd = self.udp_sock.recvfrom(BUFFERSIZE)
-			if cltadd[0]!=tcp_client.getpeername()[0]:
+			if cltadd[0]!=self.tcp_client.getpeername()[0]:
 				continue
 			if not data:
 				continue
 			block, cut, cut_count, cut_size, fdata = struct.unpack(Msg.DATA_FMT,data)
 			if block==0 and cut==0 and cut_count==0 and cut_size==0:
 				break
+			received_data+=received_data
 			self.udp_sock.sendto(cut,cltadd)
 			self.block_cuts[cut] = fdata[:cut_size]
 			# wait current block transfer complete
