@@ -78,7 +78,7 @@ class FileSender(object):
 
 	def run(self):
 		block = 0
-		f = open(filepath, "rb")
+		f = open(self.filepath, "rb")
 		while True:
 			offset = (block-1)*BUFFERSIZE
 			f.seek(offset)
