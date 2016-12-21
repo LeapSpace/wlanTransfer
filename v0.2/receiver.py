@@ -80,7 +80,7 @@ class FileSender(object):
 		block = 0
 		f = open(self.filepath, "rb")
 		while True:
-			offset = (block-1)*BUFFERSIZE
+			offset = block*BUFFERSIZE
 			f.seek(offset)
 			block_data = f.read(BLOCK_SZIE)
 			cut = 0
