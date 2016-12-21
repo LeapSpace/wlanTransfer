@@ -73,17 +73,14 @@ class ScanHost(threading.Thread):
 	def run(self):
 		while True:
 			if self.queue.qsize()<=0:
-				print self.threadname+" queue size:"+str(self.queue.qsize())
 				break
 			host = self.queue.get()
 			try:
-				client = socket.create_connection((host, 11023), 0.05)
+				client = socket.create_connection((host, 11023), 0.5)
+				client.settimeout(0.5)
 				client.send(struct.pack(Msg.MSG_FMT,Msg.ScanReqNo,"hi"))
-
 				data = client.recv(1024)
 				resNo,data = struct.unpack(Msg.MSG_FMT,data)
-				if host=="192.168.1.181":
-					print time.time()-start_time
 				if resNo==Msg.ScanResNo:
 					self.wlanHostQueue.put({"host":host,"hostname":data.strip("\0")})
 				client.close()
@@ -91,7 +88,7 @@ class ScanHost(threading.Thread):
 				pass
 
 if __name__ == "__main__":
-	scanner = Scanner(5)
+	scanner = Scanner(10)
 	wlanHosts = scanner.run()
 	print wlanHost
 	#print(Msg.getScanReqData())
