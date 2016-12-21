@@ -79,7 +79,8 @@ class FileSender(object):
 	def run(self):
 		block = 0
 		f = open(self.filepath, "rb")
-		while True:
+		target_alive = True
+		while target_alive:
 			offset = block*BUFFERSIZE
 			f.seek(offset)
 			block_data = f.read(BLOCK_SZIE)
@@ -92,6 +93,7 @@ class FileSender(object):
 				#data in transfering > speed * time. wait for server confirm
 				if len(send_out_unconfirm_cuts)*CUT_SIZE>(SPEED*0.01):
 					if check%100==0:
+						target_alive = False
 						print("target server die")
 						break
 					try:
@@ -189,7 +191,7 @@ class TCPServer(object):
 			yesOrNo = raw_input(self.client.getpeername()[0]+"---"+hostname+" wants to send you <<"+filename+">>,\ndo you want it?yes or no:").lower()
 			if yesOrNo=="yes" or yesOrNo=="y":
 				self.client.send(struct.pack(Msg.MSG_FMT, Msg.SenderFileResNo, "yes"))
-				FileRecver(self.client,filename,fileSize).run()
+				FileRecver(self.client,filename,int(fileSize)).run()
 				self.client.close()
 			else:
 				self.client.send(struct.pack(Msg.MSG_FMT, Msg.SenderFileResNo, "no"))
