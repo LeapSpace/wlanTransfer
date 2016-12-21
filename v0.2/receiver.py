@@ -127,6 +127,7 @@ class UDPServer(object):
 	"""docstring for UDPServer"""
 
 	sock = None
+	client = None
 
 	def __init__(self):
 		super(UDPServer, self).__init__()
@@ -199,12 +200,14 @@ class TCPServer(object):
 		partIp = ".".join(self.ip.split(".")[:3])
 		scan_sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 		scan_sock.settimeout(0.01)
+		for x in range(2,255):
+			scan_sock.sendto("hi",(partIp+"."+str(x),SERVER_PORT-1))
+
 		for i in range(2,255):
 			try:
-				scan_sock.sendto("hi",(partIp+"."+str(i),SERVER_PORT-1))
-				res = scan_sock.recvfrom(BUFFERSIZE)
+				res,addr = scan_sock.recvfrom(BUFFERSIZE)
 				if (res):
-					print(partIp+"."+str(i))
+					print(scan_sock.getpeername()[0])
 			except Exception as e:
 				pass
 
