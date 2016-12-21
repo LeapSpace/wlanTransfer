@@ -45,7 +45,7 @@ class FileRecver(object):
 				break
 			self.udp_sock.sendto(cut,cltadd)
 			self.block_cuts[cut] = fdata[:cut_size]
-			#当前block传输完毕
+			# wait current block transfer complete
 			if block not in self.block_set and len(self.block_cuts)==cut_count:
 				tempfile = open("tmp/%s" % block, "wb")
 				for i in range(cut_count):
@@ -85,7 +85,7 @@ class FileSender(object):
 			while len(to_send_cuts)>0:
 				#data in transfering > speed * time. wait for server confirm
 				if len(send_out_unconfirm_cuts)*CUT_SIZE>(SPEED*0.01):
-					if check%100==0
+					if check%100==0:
 						print("target server die")
 						break
 					try:
@@ -125,6 +125,8 @@ class FileSender(object):
 
 class UDPServer(object):
 	"""docstring for UDPServer"""
+
+	sock = None
 
 	def __init__(self):
 		super(UDPServer, self).__init__()
@@ -170,15 +172,15 @@ class TCPServer(object):
 		pid = os.fork()
 		if pid==0:
 			udp_server = UDPServer()
-			udpServer.run()
+			udp_server.run()
 		else:
 			self.udp_server_pid=pid
 		time.sleep(0.1)
 		self.hostname = socket.gethostname()
 		self.ip = self.getSelfIp()
 		self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-		self.bind(("0.0.0.0", SERVER_PORT))
-		self.listen(1)
+		self.sock.bind(("0.0.0.0", SERVER_PORT))
+		self.sock.listen(1)
 	def receive(self):
 		print("waiting for someone sending file ...")
 		self.client, cltadd = self.sock.accept()
@@ -186,13 +188,13 @@ class TCPServer(object):
 		if reqNo==Msg.SenderFileReqNo:
 			hostname,filename,fileSize = data.strip().split("\n")
 			yesOrNo = raw_input(client.getpeername()[0]+"---"+hostname+" wants to send you <<"+filename+">>,\ndo you want it?yes or no:").lower()
-				if yesOrNo=="yes" or yesOrNo=="y":
-					self.client.send(struct.pack(Msg.MSG_FMT, Msg.SenderFileResNo, "yes"))
-					FileRecver(self.client,filename,fileSize).run()
-					self.client.close()
-				else:
-					self.client.send(struct.pack(Msg.MSG_FMT, Msg.SenderFileResNo, "no"))
-					self.client.close()
+			if yesOrNo=="yes" or yesOrNo=="y":
+				self.client.send(struct.pack(Msg.MSG_FMT, Msg.SenderFileResNo, "yes"))
+				FileRecver(self.client,filename,fileSize).run()
+				self.client.close()
+			else:
+				self.client.send(struct.pack(Msg.MSG_FMT, Msg.SenderFileResNo, "no"))
+				self.client.close()
 	def scan(self):
 		partIp = ".".join(self.ip.split(".")[:3])
 		scan_sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
